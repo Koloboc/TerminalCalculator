@@ -4,7 +4,13 @@
 typedef enum _type{
 	UNDEF_TYPE = 0,
 	OPERAND,
-	ACTION
+	PLUS,
+	MINUS,
+	DIVIDE,
+	MULTIPLY,
+	SQRT,
+	BREACK_OPEN,
+	BREACK_CLOSE
 }Type;
 
 typedef enum _mode{
@@ -16,11 +22,24 @@ typedef enum _mode{
 	END
 }MODE;
 
+typedef enum _prioritet{
+	UNDEF_PRIOR = 0,
+	P_PLUS = 1,
+	P_MINUS = 1,
+	P_DIVIDE = 2,
+	P_MULTIPLY = 2,
+	P_SQRT = 3,
+	P_BREACK_CLOSE = 4,
+	P_BREACK_OPEN = 5
+}Prior;
+
 typedef struct stack{
-	char *s_val;
-	char *e_val;
-	Type type;
-	struct stack *next;
+	char			*s_val;
+	char			*e_val;
+	double			val;
+	Type			type;
+	Prior			prior;
+	struct stack	*next;
 }Stack;
  
 Stack *push_stage(Stack *stage, char *s_t, char *e_t);

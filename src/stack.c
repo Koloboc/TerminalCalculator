@@ -26,23 +26,15 @@ void push(Stack **st, Stack *el){
 }	
 
 Stack *pop(Stack **st){
-	Stack *prev = NULL;
-	Stack *cur = *st;
-	if(!cur){
+	Stack *el = NULL;
+	if(!(*st)){
 	   return (Stack*)NULL;
 	}
 
-	while(cur->next){
-		prev = cur;
-		cur = cur->next;
-	}
-
-	if(prev)
-		prev->next = NULL;
-	else
-		*st = NULL;
-
-	return cur;
+	el = *st;
+	*st = (*st)->next;
+	
+	return el;
 }
 
 void print_stack(Stack *st){
@@ -53,7 +45,7 @@ void print_stack(Stack *st){
 		quant = st->e_val - st->s_val + 1;
 		char format[20] = "%.%";
 		sprintf(format + 2, "%d", quant);
-		sprintf(format + strlen(format), "%c\n", ch);
+		sprintf(format + strlen(format), "%c:\t%lf\n", ch, st->val);
 		printf(format, st->s_val);
 		st = st->next;
 	}
