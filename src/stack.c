@@ -16,6 +16,7 @@ Stack *push_stage(Stack *stage, char *s_t, char *e_t){
 		perror("malloc stack_ac: ");
 		exit(EXIT_FAILURE);
 	}
+	//printf("add in stage: %s\n", s_t);
 	return st;
 }
 

@@ -24,7 +24,7 @@ target_compile_options(${PROJECT_TARGET} PRIVATE -g -Wall -DDebug)
 
 #========================================
 
-#target_link_options(${PROJECT_TARGET} PRIVATE -lm)
+target_link_options(${PROJECT_TARGET} PRIVATE -lm)
 #target_compile_options(${PROJECT_TARGET} PRIVATE -Wall)
 
 

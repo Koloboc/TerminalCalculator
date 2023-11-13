@@ -2,29 +2,29 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "stack.h"
 #include "main.h"
 
 Stack *head_op = NULL;
 Stack *head_ac = NULL;
 
-void mode_singlchar(Stack **stage, Stack **tail, char *cur_tok, char **s_t, char **e_t, int *mod, Type *type){
-	if(*mod == MULT_CHAR || *mod == MULT_DIGIT){
+void mode_singlchar(Stack **stage, Stack **tail, char *cur_tok, char **s_t, char **e_t, int *mod, Type type){
+	if(*mod == MULT_DIGIT){
 		*tail = push_stage(*tail, *s_t, *e_t);
 		if(!(*stage) && *tail) 
 			*stage = *tail;
 
 		(*tail)->type = OPERAND;
 		if(!sscanf(*s_t, "%lf", &((*tail)->val)))
-			perror("sscan:");
+			printf("error sscan: %s\n", *s_t);
 	}
 	*tail = push_stage(*tail, cur_tok, cur_tok);
 	if(!(*stage) && *tail) 
 		*stage = *tail;
 
 	Prior prior = UNDEF_PRIOR;
-	//switch ((*tail)->type){
-	switch (*type){
+	switch (type){
 		case PLUS: prior = P_PLUS;break;
 		case MINUS: prior = P_MINUS;break;
 		case DIVIDE: prior = P_DIVIDE;break;
@@ -36,7 +36,7 @@ void mode_singlchar(Stack **stage, Stack **tail, char *cur_tok, char **s_t, char
 		case OPERAND: prior = UNDEF_PRIOR;break;
 	}
 	(*tail)->prior = prior;
-	(*tail)->type = *type;
+	(*tail)->type = type;
 	*s_t = NULL;
 	*e_t = NULL;
 	*mod = SINGL_CHAR;
@@ -54,28 +54,37 @@ Stack *stage_one(char *str){
 		Type type = UNDEF_TYPE;
 		switch(*tock){
 			case '(':
+				if(mode == MULT_CHAR){
+					tail = push_stage(tail, s_tocken, e_tocken);
+					tail->type = SQRT;
+					tail->prior = P_SQRT;
+					if(!stage && tail) 
+						stage = tail;
+				}
+				s_tocken = tock;
+				e_tocken = tock;
 				type = BREACK_OPEN;
-				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, &type);
+				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, type);
 				break;
 			case ')':
 				type = BREACK_CLOSE;
-				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, &type);
+				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, type);
 				break;
 			case '+':
 				type = PLUS;
-				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, &type);
+				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, type);
 				break;
 			case '-':
 				type = MINUS;
-				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, &type);
+				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, type);
 				break;
 			case '*':
 				type = MULTIPLY;
-				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, &type);
+				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, type);
 				break;
 			case '/':
 				type = DIVIDE;
-				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, &type);
+				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, type);
 				break;
 			case ' ':
 				if(mode == MULT_CHAR || mode == MULT_DIGIT ){
@@ -100,14 +109,11 @@ Stack *stage_one(char *str){
 			case '7':
 			case '8':
 			case '9':
-				if(mode == MULT_DIGIT)
+				if(mode == MULT_DIGIT || (!e_tocken))
 					e_tocken = tock;
 
 				if(!s_tocken) 
 					s_tocken = tock;
-
-				if(!e_tocken) 
-					e_tocken = tock;
 
 				mode = MULT_DIGIT;
 				break;
@@ -117,7 +123,14 @@ Stack *stage_one(char *str){
 				mode = MULT_DIGIT;
 				break;
 			default:
-				printf("error parsing expression symbol %c %ld\n", *tock, tock - str);
+				if(mode != MULT_CHAR){
+					s_tocken = NULL;
+					e_tocken = NULL;
+				}
+				mode = MULT_CHAR;
+				if(!s_tocken) 
+					s_tocken = tock;
+				e_tocken = tock;
 				break;
 		}
 		tock++;
@@ -181,16 +194,16 @@ double calculate(){
 		case SQRT:
 			op2 = pop(&head_op);
 			if(op2)
-				res = op2->val;
+				res = sqrt(op2->val);
 			else
 				printf("error calculate SQRT\n");
 			break;
 		case BREACK_OPEN:
-			op2 = pop(&head_op);
-			res = op2->val;
 			break;
 		case BREACK_CLOSE:
-			res = calculate();
+			while(head_op && head_ac && head_ac->type != BREACK_OPEN){
+				res = calculate();
+			}
 			break;
 		default:
 			break;
@@ -219,13 +232,11 @@ int parse(Stack *el){
 	// ACTIONS
 	//
 
-	if(!head_ac || el->prior > head_ac->prior){
+	if(!head_ac || head_ac->type == SQRT || el->prior > head_ac->prior){
 		push(&head_ac, el);
 		return 0;
 	}
 	calculate();
-	//free(el);
-	//el = NULL;
 	return 1;
 }
 
@@ -238,8 +249,8 @@ int main(int argc, char** argv){
 	Stack *el = NULL;
 	while(stage){
 		el = pop(&stage);
-		if(parse(el))
-			push(&stage, el);
+		while(parse(el)) ;
+			//push(&stage, el);
 	}
 	while(head_ac){
 		calculate();
