@@ -1,275 +1,46 @@
 #include <string.h>
-#include <ctype.h>
+//#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "stack.h"
-#include "main.h"
+#include "element.h"
+#include "utils.h"
+#include "dic.h"
 
-Stack *head_op = NULL;
-Stack *head_ac = NULL;
-
-void mode_singlchar(Stack **stage, Stack **tail, char *cur_tok, char **s_t, char **e_t, int *mod, Type type){
-	if(*mod == MULT_DIGIT){
-		*tail = push_stage(*tail, *s_t, *e_t);
-		if(!(*stage) && *tail) 
-			*stage = *tail;
-
-		(*tail)->type = OPERAND;
-		if(!sscanf(*s_t, "%lf", &((*tail)->val)))
-			printf("error sscan: %s\n", *s_t);
-	}
-	*tail = push_stage(*tail, cur_tok, cur_tok);
-	if(!(*stage) && *tail) 
-		*stage = *tail;
-
-	Prior prior = UNDEF_PRIOR;
-	switch (type){
-		case PLUS: prior = P_PLUS;break;
-		case MINUS: prior = P_MINUS;break;
-		case DIVIDE: prior = P_DIVIDE;break;
-		case MULTIPLY: prior = P_MULTIPLY;break;
-		case SQRT: prior = P_SQRT;break;
-		case BREACK_OPEN: prior = P_BREACK_OPEN;break;
-		case BREACK_CLOSE: prior = P_BREACK_CLOSE;break;
-		case UNDEF_TYPE: prior = UNDEF_PRIOR;break;
-		case OPERAND: prior = UNDEF_PRIOR;break;
-	}
-	(*tail)->prior = prior;
-	(*tail)->type = type;
-	*s_t = NULL;
-	*e_t = NULL;
-	*mod = SINGL_CHAR;
-}
-
-Stack *stage_one(char *str){
-	char *tock = str;
-	int lenline = strlen(tock);
-	int mode = UNDEF_MODE;
-	char *s_tocken = NULL;
-	char *e_tocken = NULL;
-	Stack *stage = NULL;
-	Stack *tail = NULL;
-	while(1){
-		Type type = UNDEF_TYPE;
-		switch(*tock){
-			case '(':
-				if(mode == MULT_CHAR){
-					tail = push_stage(tail, s_tocken, e_tocken);
-					tail->type = SQRT;
-					tail->prior = P_SQRT;
-					if(!stage && tail) 
-						stage = tail;
-				}
-				s_tocken = tock;
-				e_tocken = tock;
-				type = BREACK_OPEN;
-				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, type);
-				break;
-			case ')':
-				type = BREACK_CLOSE;
-				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, type);
-				break;
-			case '+':
-				type = PLUS;
-				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, type);
-				break;
-			case '-':
-				type = MINUS;
-				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, type);
-				break;
-			case '*':
-				type = MULTIPLY;
-				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, type);
-				break;
-			case '/':
-				type = DIVIDE;
-				mode_singlchar(&stage, &tail, tock, &s_tocken, &e_tocken, &mode, type);
-				break;
-			case ' ':
-				if(mode == MULT_CHAR || mode == MULT_DIGIT ){
-					tail = push_stage(tail, s_tocken, e_tocken);
-					if(!stage && tail) 
-						stage = tail;
-					tail->type = OPERAND;
-					if(!sscanf(s_tocken, "%lf", &(tail->val)))
-						perror("sscan:");
-				}
-				s_tocken = NULL;
-				e_tocken = NULL;
-				mode = UNDEF_MODE;
-				break;
-			case '0':
-			case '1':
-			case '2':
-			case '3':
-			case '4':
-			case '5':
-			case '6':
-			case '7':
-			case '8':
-			case '9':
-				if(mode == MULT_DIGIT || (!e_tocken))
-					e_tocken = tock;
-
-				if(!s_tocken) 
-					s_tocken = tock;
-
-				mode = MULT_DIGIT;
-				break;
-			case '.':
-				if(mode == MULT_DIGIT)
-					e_tocken = tock;
-				mode = MULT_DIGIT;
-				break;
-			default:
-				if(mode != MULT_CHAR){
-					s_tocken = NULL;
-					e_tocken = NULL;
-				}
-				mode = MULT_CHAR;
-				if(!s_tocken) 
-					s_tocken = tock;
-				e_tocken = tock;
-				break;
-		}
-		tock++;
-		if(tock == str + lenline){
-			if(mode == MULT_DIGIT && s_tocken && e_tocken){
-				tail = push_stage(tail, s_tocken, e_tocken);
-				if(!stage && tail) 
-					stage = tail;
-				tail->type = OPERAND;
-				if(!sscanf(s_tocken, "%lf", &(tail->val)))
-					perror("sscan:");
-			}
-			break;
-		}
-	}
-	return stage;
-}
-
-double calculate(){
-	double res;
-
-	Stack *op2 = NULL;
-	Stack *op1 = NULL;
-	Stack *ac = NULL;
-
-	ac = pop(&head_ac);
-
-	switch (ac->type){
-		case PLUS:
-			op2 = pop(&head_op);
-			op1 = pop(&head_op);
-			if(op1 && op2)
-				res = op1->val + op2->val;
-			else
-				printf("error calculate PLUS\n");
-			break;
-		case MINUS:
-			op2 = pop(&head_op);
-			op1 = pop(&head_op);
-			if(op1 && op2)
-				res = op1->val - op2->val;
-			else
-				printf("error calculate MINUS\n");
-			break;
-		case DIVIDE:
-			op2 = pop(&head_op);
-			op1 = pop(&head_op);
-			if(op1 && op2)
-				res = op1->val / op2->val;
-			else
-				printf("error calculate DIVIDE\n");
-			break;
-		case MULTIPLY:
-			op2 = pop(&head_op);
-			op1 = pop(&head_op);
-			if(op1 && op2)
-				res = op2->val * op1->val;
-			else
-				printf("error calculate MULTIPLY\n");
-			break;
-		case SQRT:
-			op2 = pop(&head_op);
-			if(op2)
-				res = sqrt(op2->val);
-			else
-				printf("error calculate SQRT\n");
-			break;
-		case BREACK_OPEN:
-			break;
-		case BREACK_CLOSE:
-			while(head_op && head_ac && head_ac->type != BREACK_OPEN){
-				res = calculate();
-			}
-			break;
-		default:
-			break;
-	}
-
-	if(op2){
-		op2->val = res;
-		push(&head_op, op2);
-	}
-	free(op1);
-	free(ac);
-	return res;
-}
-
-int parse(Stack *el){
-	if(el->type == UNDEF_TYPE){
-		printf("undefined type: %d\n", el->type);
-		free(el);
-		return 0;
-	}
-	if(el->type == OPERAND){
-		push(&head_op, el);
-		return 0;
-	}
-
-	// ACTIONS
-	//
-
-	if(!head_ac || head_ac->type == SQRT || el->prior > head_ac->prior){
-		push(&head_ac, el);
-		return 0;
-	}
-	calculate();
-	return 1;
-}
+extern Dic *dic;
 
 int main(int argc, char** argv){
+	char *prog_txt = NULL;
+
 	if(argc < 2){
 		printf("Usage: %s expresion\n", argv[0]);
 		return 0;
 	}
-	Stack *stage = stage_one(argv[1]);
-	Stack *el = NULL;
-	while(stage){
-		el = pop(&stage);
-		while(parse(el)) ;
-			//push(&stage, el);
-	}
-	while(head_ac){
-		calculate();
-	}
 
-	if(head_op)
-		printf("%lf\n", head_op->val);
+	if((prog_txt = file_to_str(argv[1])) == NULL)
+		return EXIT_FAILURE;
 
-	/*
-	printf("operands:\n");
-	print_stack(head_op);
-	printf("actions:\n");
-	print_stack(head_ac);
-	printf("stage:\n");
-	print_stack(stage);
-*/
-	destroy_head(stage);
-	destroy_head(head_op);
-	destroy_head(head_ac);
+	init_dic();
+
+	Element *prog = (Element*)malloc(sizeof(Element));
+	memset(prog, 0, sizeof(Element));
+	read_words(prog, prog_txt);
+	int cod_open = word_cod("(");
+	int cod_close = word_cod(")");
+	make_tree(prog, cod_open, cod_close);
+	cod_open = word_cod("{");
+	cod_close = word_cod("}");
+	make_tree(prog, cod_open, cod_close);
+
+
+	//print_dic();
+	print_prog(prog, 0);
+	printf("%s\n", prog_txt);
+
+	free_dic();
+	free_prog(prog);
+
+	free(prog_txt);
 	return EXIT_SUCCESS;
 }
 

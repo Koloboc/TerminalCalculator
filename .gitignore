@@ -19,3 +19,8 @@ out
 test
 a.out
 *.kdev4
+*.avi
+*.mpg
+*.mpeg
+*.mov
+

@@ -14,8 +14,8 @@ SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY
         "Single Directory for all"
     )
 
-message("source = " ${LIST_SOURCES})
-message("headers = " ${LIST_HEADERS})
+#message("source = " ${ALL_SOURCES})
+#message("headers = " ${LIST_HEADERS})
 
 add_executable(${PROJECT_TARGET} ${ALL_SOURCES})
 target_include_directories(${PROJECT_TARGET} PRIVATE ${INCLUDES_DIR})
