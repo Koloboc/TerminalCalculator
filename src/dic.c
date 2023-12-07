@@ -65,10 +65,10 @@ Dic *add_word_dic(char *name, size_t cod, Types t){
 
 // Создает базовые элементы
 void init_dic(){
-	add_word_dic("+", 0, ACTION);
-	add_word_dic("-", 0, ACTION);
 	add_word_dic("*", 0, ACTION);
 	add_word_dic("/", 0, ACTION);
+	add_word_dic("+", 0, ACTION);
+	add_word_dic("-", 0, ACTION);
 	add_word_dic("(", 0, OPEN_LEVEL);
 	add_word_dic(")", 0, CLOSE_LEVEL);
 }

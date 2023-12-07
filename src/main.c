@@ -28,6 +28,7 @@ int main(int argc, char** argv){
 	int cod_open = word_cod("(");
 	int cod_close = word_cod(")");
 	make_tree(prog, cod_open, cod_close);
+	make_tree_ma(prog);
 
 	print_prog(prog, 0);
 	printf("%s\n", prog_txt);

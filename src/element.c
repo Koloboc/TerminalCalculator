@@ -1,6 +1,30 @@
 #include "element.h"
 #include "dic.h"
 
+void make_tree_ma(Element *root){
+	Element *iter = root->inner;
+
+	while(iter){
+		if(iter->inner)
+			make_tree_ma(iter);
+		if(iter->dic->type == ACTION){
+			if(!iter->prev){
+				printf("Error: miss operand before %s\n", iter->value);
+				return;
+			}
+			if(!iter->next){
+				printf("Error: miss operand avter %s\n", iter->value);
+				return;
+			}
+			add_el(iter, iter->prev);
+			if(iter->next && iter->next->inner)
+				make_tree_ma(iter->next);
+			add_el(iter, iter->next);
+		}
+		iter = iter->next;
+	}
+}
+
 // Построение структуры вложенности скобок и функций
 void make_tree(Element *el, size_t code_open, size_t code_close){
 	Element *container = el;

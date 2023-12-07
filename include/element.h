@@ -21,7 +21,10 @@ Element *last_el(Element *el);
 void add_el(Element *dist, Element *el);
 void add_el_name(Element *dist, char *name,  Types t);
 void make_tree(Element *root, size_t code_open, size_t code_close);
-void make_tree_foo(Element *el);
+void make_tree_ma(Element *root);
+
+void exec(Element *el);
+
 void free_prog(Element *el);
 void free_el(Element *el);
 void print_prog(Element *prog, int blanks);
