@@ -22,6 +22,7 @@ int main(int argc, char** argv){
 
 	init_dic();
 
+	//print_dic();
 	Element *prog = (Element*)malloc(sizeof(Element));
 	memset(prog, 0, sizeof(Element));
 	read_words(prog, prog_txt);
@@ -33,7 +34,7 @@ int main(int argc, char** argv){
 	make_tree(prog, cod_open, cod_close);
 
 
-	//print_dic();
+	print_dic();
 	print_prog(prog, 0);
 	printf("%s\n", prog_txt);
 

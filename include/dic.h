@@ -8,10 +8,12 @@
 enum _types{
 	UNDEF = 0,
 	OPERAND,
+	ACTION,
+	//COMPARISON,
 	OPEN_LEVEL,
 	CLOSE_LEVEL,
 	IS_FOO,
-	IS_BOOL
+	//IS_BOOL
 }_types;
 typedef enum _types Types;
 
@@ -22,9 +24,10 @@ typedef struct _dic{
 	struct _dic *next;
 }Dic;
 
+Dic* word_dic(char *name, Types t);
 size_t word_cod(char *name);
 Types word_type(size_t cod);
-void add_word_dic(char *name, size_t, Types t);
+Dic *add_word_dic(char *name, size_t, Types t);
 void init_dic();
 void free_dic();
 void print_dic();

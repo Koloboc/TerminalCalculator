@@ -7,6 +7,18 @@
 Dic *dic = NULL;
 size_t count_dic = 0;
 
+Dic* word_dic(char *name, Types type){
+	Dic *d = dic;
+	while(d){
+		if(strcmp(d->name, name) == 0)
+			return d;
+		d = d->next;
+	}
+	if(type == IS_FOO || type == OPERAND)
+		return add_word_dic(name, 0, type);
+	return NULL;
+}
+
 Types word_type(size_t cod){
 	Dic *cur = dic;
 	while(cur){
@@ -29,7 +41,7 @@ size_t word_cod(char *name){
 	return 0;
 }
 
-void add_word_dic(char *name, size_t cod, Types t){
+Dic *add_word_dic(char *name, size_t cod, Types t){
 	Dic *newdic = (Dic*)malloc(sizeof(Dic));
 	if(cod)
 		newdic->code = cod;
@@ -41,20 +53,21 @@ void add_word_dic(char *name, size_t cod, Types t){
 	newdic->next = NULL;
 	newdic->next = dic;
 	dic = newdic;
+	return newdic;
 }
 
 void init_dic(){
-	add_word_dic("+", 0, OPERAND);
-	add_word_dic("-", 0, OPERAND);
-	add_word_dic("*", 0, OPERAND);
-	add_word_dic("/", 0, OPERAND);
-	add_word_dic("=", 0, OPERAND);
-	add_word_dic("!=", 0, IS_BOOL);
-	add_word_dic("<>", 0, IS_BOOL);
-	add_word_dic("<", 0, IS_BOOL);
-	add_word_dic(">", 0, IS_BOOL);
-	add_word_dic("<=", 0, IS_BOOL);
-	add_word_dic(">=", 0, IS_BOOL);
+	add_word_dic("+", 0, ACTION);
+	add_word_dic("-", 0, ACTION);
+	add_word_dic("*", 0, ACTION);
+	add_word_dic("/", 0, ACTION);
+	//add_word_dic("=", 0, ACTION);
+	//add_word_dic("!=", 0, COMPARISON);
+	//add_word_dic("<>", 0, COMPARISON);
+	//add_word_dic("<", 0, COMPARISON);
+	//add_word_dic(">", 0, COMPARISON);
+	//add_word_dic("<=", 0, COMPARISON);
+	//add_word_dic(">=", 0, COMPARISON);
 	add_word_dic("(", 0, OPEN_LEVEL);
 	add_word_dic(")", 0, CLOSE_LEVEL);
 	add_word_dic("{", 0, OPEN_LEVEL);

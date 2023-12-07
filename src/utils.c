@@ -27,12 +27,12 @@ void read_words(Element *root, char *str){
 	char *name  = NULL;
 
 	while(pos <= len){
-		name = read_word(str, &pos, len);
-		if(!name) name = read_number(str, &pos, len);
-		if(!name) name = read_2mark(str, &pos, len);
-		if(!name) name = read_1mark(str, &pos, len);
-		if(name){
-		   add_el_name(root, name);
+		if(name = read_word(str, &pos, len)){
+			add_el_name(root, name, IS_FOO);
+		}else if(name = read_number(str, &pos, len)){
+			add_el_name(root, name, OPERAND);
+		}else if(name = read_1mark(str, &pos, len)){
+			add_el_name(root, name, ACTION);
 		}else{
 			pos++;
 		}
@@ -49,9 +49,9 @@ char *read_1mark(char *str, size_t *pos, size_t len){
 		else if(str[*pos] == '-') tmp = '-';
 		else if(str[*pos] == '*') tmp = '*';
 		else if(str[*pos] == '/') tmp = '/';
-		else if(str[*pos] == '=') tmp = '=';
-		else if(str[*pos] == '>') tmp = '>';
-		else if(str[*pos] == '<') tmp = '<';
+		//else if(str[*pos] == '=') tmp = '=';
+		//else if(str[*pos] == '>') tmp = '>';
+		//else if(str[*pos] == '<') tmp = '<';
 		else if(str[*pos] == '(') tmp = '(';
 		else if(str[*pos] == ')') tmp = ')';
 		else if(str[*pos] == '{') tmp = '{';
@@ -71,6 +71,7 @@ char *read_1mark(char *str, size_t *pos, size_t len){
 	return result;
 }
 
+/*
 char *read_2mark(char *str, size_t *pos, size_t len){
 	char *result = NULL;
 	char *tmp = NULL;
@@ -94,13 +95,16 @@ char *read_2mark(char *str, size_t *pos, size_t len){
 	}
 	return result;
 }
+*/
 
 char *read_number(char *str, size_t *pos, size_t len){
 	char *result = NULL;
 	size_t start = *pos;
 	int kt = 0;
 
-	if(((*pos <= len) && is_digit(str[*pos])) || str[*pos] == '-'){
+	//if(((*pos <= len) && is_digit(str[*pos])) || ((str[*pos] == '-') && (is_digit(str[*pos + 1])) && (*pos + 1 <= len))){
+	//if(((*pos <= len) && is_digit(str[*pos])) || str[*pos] == '-'){
+	if((*pos <= len) && is_digit(str[*pos])){
 		while(((*pos <= len) && is_digit(str[*pos])) || ((str[*pos] == '.') && (kt < 1))){
 			if(str[*pos] == '.') 
 				kt++;
@@ -167,3 +171,4 @@ char *file_to_str(char *namefile){
 	fclose(in);
 	return str;
 }
+

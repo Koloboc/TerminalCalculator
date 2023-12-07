@@ -1,22 +1,23 @@
 #include "element.h"
 #include "dic.h"
 
-void make_tree(Element *el, int code_open, int code_close){
+void make_tree(Element *el, size_t code_open, size_t code_close){
 	Element *container = el;
 	Element *iter = el->inner;
 
 	while(iter){
 		Element *next = iter->next;
 		if(container != el){
-			if(iter->code == code_close){
+			if(iter->dic->code == code_close){
 				container = container->parent;
 				free_el(iter);
+				iter = next;
 				continue;
 			}else{
 				add_el(container, iter);
 			}
 		}
-		if(iter->code == code_open)
+		if(iter->dic->code == code_open)
 			container = iter;
 		iter = next;
 	}
@@ -60,11 +61,14 @@ void add_el(Element *root, Element *el){
 	}
 }
 
-void add_el_name(Element *dist, char *name){
+void add_el_name(Element *dist, char *name, Types type){
 	Element *newel = NULL;
+	Dic *d = word_dic(name, type);
+	if(!d)
+		printf("Error dic %s : %d\n", name, type);
 
 	newel = (Element*)malloc(sizeof(Element));
-	newel->code = word_cod(name);
+	newel->dic = d;//word_dic(name, type);
 	newel->value = name;
 	newel->parent = NULL;
 	newel->inner = NULL;
