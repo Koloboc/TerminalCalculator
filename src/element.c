@@ -1,6 +1,7 @@
 #include "element.h"
 #include "dic.h"
 
+// Построение структуры вложенности скобок и функций
 void make_tree(Element *el, size_t code_open, size_t code_close){
 	Element *container = el;
 	Element *iter = el->inner;
@@ -17,12 +18,14 @@ void make_tree(Element *el, size_t code_open, size_t code_close){
 				add_el(container, iter);
 			}
 		}
-		if(iter->dic->code == code_open)
+		if((iter->dic->code == code_open) || (iter->dic->type == IS_FOO))
 			container = iter;
 		iter = next;
 	}
 }
 
+// Возыращает последний элемент во внутреннем списке root
+// или NULL
 Element *last_el(Element *root){
 	Element *inn = root->inner;
 	if(!inn)
@@ -33,6 +36,8 @@ Element *last_el(Element *root){
 	return inn;
 }
 
+// Отстыковывает элемент и делает егоa \"свободным\"
+// Внутренние элементы (если есть) остаются без изменений
 void disconnect(Element *el){
 	Element *pa = el->parent;
 	if(pa)						  // Родитель существует
@@ -45,6 +50,7 @@ void disconnect(Element *el){
 	if(el->prev) el->prev->next = el->next;
 }
 
+// Добавляет элемент в конец к родителю root
 void add_el(Element *root, Element *el){
 	disconnect(el);
 	Element *last_dist = last_el(root);
@@ -61,14 +67,15 @@ void add_el(Element *root, Element *el){
 	}
 }
 
+// Создает элемент нужного типа и со значением
 void add_el_name(Element *dist, char *name, Types type){
 	Element *newel = NULL;
-	Dic *d = word_dic(name, type);
+	Dic *d = word_dic(name, type); // ищем в словаре, если нет, создается новый элемент словаря
 	if(!d)
 		printf("Error dic %s : %d\n", name, type);
 
 	newel = (Element*)malloc(sizeof(Element));
-	newel->dic = d;//word_dic(name, type);
+	newel->dic = d;
 	newel->value = name;
 	newel->parent = NULL;
 	newel->inner = NULL;
@@ -83,10 +90,6 @@ void free_el(Element *el){
 	disconnect(el);
 	if(el->value)
 		free(el->value);
-
-	//if(el->parent->inner == el) el->parent->inner = NULL;
-	//if(el->next) el->next->prev = el->prev;
-	//if(el->prev) el->prev->next = el->next;
 	free(el);
 }
 

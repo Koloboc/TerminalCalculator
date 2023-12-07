@@ -6,6 +6,9 @@
 #include "utils.h"
 #include "dic.h"
 
+// Симовл является буквой алфавита?
+// 1 - да
+// 0 - нет
 int is_liter(char ch){
 	if((ch >= 'A') && (ch <= 'Z'))
 		   return 1;
@@ -14,6 +17,9 @@ int is_liter(char ch){
 	return 0;
 }
 
+// Стмвол является цифрой?
+// 1 - является
+// 0 - не является
 int is_digit(char ch){
 	if((ch >= '0' && ch <= '9'))
 			return 1;
@@ -21,17 +27,19 @@ int is_digit(char ch){
 
 }
 
+// посимвольно читает каждый символ и определяет его тип
+// добавляет новый элемент в дерево root
 void read_words(Element *root, char *str){
 	size_t pos = 0;
 	size_t len = strlen(str);
 	char *name  = NULL;
 
 	while(pos <= len){
-		if(name = read_word(str, &pos, len)){
+		if((name = read_word(str, &pos, len))){
 			add_el_name(root, name, IS_FOO);
-		}else if(name = read_number(str, &pos, len)){
+		}else if((name = read_number(str, &pos, len))){
 			add_el_name(root, name, OPERAND);
-		}else if(name = read_1mark(str, &pos, len)){
+		}else if((name = read_1mark(str, &pos, len))){
 			add_el_name(root, name, ACTION);
 		}else{
 			pos++;
@@ -49,61 +57,27 @@ char *read_1mark(char *str, size_t *pos, size_t len){
 		else if(str[*pos] == '-') tmp = '-';
 		else if(str[*pos] == '*') tmp = '*';
 		else if(str[*pos] == '/') tmp = '/';
-		//else if(str[*pos] == '=') tmp = '=';
-		//else if(str[*pos] == '>') tmp = '>';
-		//else if(str[*pos] == '<') tmp = '<';
 		else if(str[*pos] == '(') tmp = '(';
 		else if(str[*pos] == ')') tmp = ')';
-		else if(str[*pos] == '{') tmp = '{';
-		else if(str[*pos] == '}') tmp = '}';
 		if(tmp){
 			result = (char*)malloc(sizeof(char) * 2);
 			if(!result){
 				printf("error alloc result for %c\n", tmp);
-				return result; //  NULL
+				return result;
 			}
 			result[0] = tmp;
 			result[1] = '\0';
-		//printf("reading mark: %s\n", &tmp);
 			*pos += 1;
 		}
 	}
 	return result;
 }
 
-/*
-char *read_2mark(char *str, size_t *pos, size_t len){
-	char *result = NULL;
-	char *tmp = NULL;
-
-	if(*pos <= len){
-		if	   ((str[*pos] == '<') && (str[*pos + 1] == '=')) tmp = "<=";
-		else if(((str[*pos] == '>') && (str[*pos + 1] == '='))) tmp = ">=";
-		else if(((str[*pos] == '=') && (str[*pos + 1] == '='))) tmp = "==";
-		else if(((str[*pos] == '<') && (str[*pos + 1] == '>'))) tmp = "<>";
-		else if(((str[*pos] == '!') && (str[*pos + 1] == '='))) tmp = "!=";
-		if(tmp){
-			*pos += 2;
-			result = (char*)malloc(sizeof(char) * 3);
-			if(!result){
-				printf("error alloc result for %s\n", tmp);
-				return result; //  NULL
-			}
-			strncpy(result, tmp, 2);
-			//result[2] = '\0';
-		}
-	}
-	return result;
-}
-*/
-
 char *read_number(char *str, size_t *pos, size_t len){
 	char *result = NULL;
 	size_t start = *pos;
 	int kt = 0;
 
-	//if(((*pos <= len) && is_digit(str[*pos])) || ((str[*pos] == '-') && (is_digit(str[*pos + 1])) && (*pos + 1 <= len))){
-	//if(((*pos <= len) && is_digit(str[*pos])) || str[*pos] == '-'){
 	if((*pos <= len) && is_digit(str[*pos])){
 		while(((*pos <= len) && is_digit(str[*pos])) || ((str[*pos] == '.') && (kt < 1))){
 			if(str[*pos] == '.') 
@@ -166,7 +140,6 @@ char *file_to_str(char *namefile){
 			*iter = ch;
 			iter++;
 		}
-		//*iter = '\0';
 	}
 	fclose(in);
 	return str;

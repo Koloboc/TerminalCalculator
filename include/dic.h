@@ -9,11 +9,9 @@ enum _types{
 	UNDEF = 0,
 	OPERAND,
 	ACTION,
-	//COMPARISON,
 	OPEN_LEVEL,
 	CLOSE_LEVEL,
 	IS_FOO,
-	//IS_BOOL
 }_types;
 typedef enum _types Types;
 
