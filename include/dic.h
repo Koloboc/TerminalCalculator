@@ -12,7 +12,7 @@ enum _types{
 	OPEN_LEVEL,
 	CLOSE_LEVEL,
 	IS_FOO,
-}_types;
+};
 typedef enum _types Types;
 
 typedef struct _dic{
