@@ -19,13 +19,14 @@ typedef struct _dic{
 	char *name;
 	size_t code;
 	Types type;
+	int prior;
 	struct _dic *next;
 }Dic;
 
 Dic* word_dic(char *name, Types t);
 size_t word_cod(char *name);
 Types word_type(size_t cod);
-Dic *add_word_dic(char *name, size_t, Types t);
+Dic *add_word_dic(char *name, size_t, Types t, int prior);
 void init_dic();
 void free_dic();
 void print_dic();

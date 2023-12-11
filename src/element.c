@@ -1,27 +1,120 @@
+#include <stdlib.h>
 #include "element.h"
 #include "dic.h"
 
+
+void exec_el(Element *el){
+	Element *arg1 = NULL;
+	Element *arg2 = NULL;
+	int precission = 10;
+
+	if(el->dic->type == OPERAND) return;
+
+	if(el->inner){
+		arg1 = el->inner;
+		exec_el(arg1);
+		if(el->inner->next){
+			arg2 = el->inner->next;
+			exec_el(arg2);
+		}
+	}
+
+	if(strcmp(el->value, "+") == 0){
+		if(arg2 && arg1){
+			double d1 = strtod(arg1->value, NULL);
+			double d2 = strtod(arg2->value,NULL);
+			double rez = d1 + d2;
+#ifdef DEBUG
+			printf("operation '+': d1=%f; d2=%f; rez=%f\n", d1, d2, rez);
+#endif
+			if(el->value) free(el->value);
+			el->value = (char*)malloc(sizeof(char) * precission);
+			sprintf(el->value, "%f", rez);
+			free_el(arg1);
+			free_el(arg2);
+		} 
+	}else if(strcmp(el->value, "-") == 0){
+		if(arg2 && arg1){
+			double d1 = strtod(arg1->value, NULL);
+			double d2 = strtod(arg2->value,NULL);
+			double rez = d1 - d2;
+#ifdef DEBUG
+			printf("operation '-': d1=%f; d2=%f; rez=%f\n", d1, d2, rez);
+#endif
+			if(el->value) free(el->value);
+			el->value = (char*)malloc(sizeof(char) * precission);
+			sprintf(el->value, "%f", rez);
+			free_el(arg1);
+			free_el(arg2);
+		} 
+	}else if(strcmp(el->value, "/") == 0){
+		if(arg2 && arg1){
+			double d1 = strtod(arg1->value, NULL);
+			double d2 = strtod(arg2->value,NULL);
+			if(!d2){
+				printf("division on 0");
+				return;
+			}
+			double rez = d1 / d2;
+#ifdef DEBUG
+			printf("operation '/': d1=%f; d2=%f; rez=%f\n", d1, d2, rez);
+#endif
+			if(el->value) free(el->value);
+			el->value = (char*)malloc(sizeof(char) * precission);
+			sprintf(el->value, "%f", rez);
+			free_el(arg1);
+			free_el(arg2);
+		} 
+	}else if(strcmp(el->value, "*") == 0){
+		if(arg2 && arg1){
+			double d1 = strtod(arg1->value, NULL);
+			double d2 = strtod(arg2->value,NULL);
+			double rez = d1 * d2;
+#ifdef DEBUG
+			printf("operation '*': d1=%f; d2=%f; rez=%f\n", d1, d2, rez);
+#endif
+			if(el->value) free(el->value);
+			el->value = (char*)malloc(sizeof(char) * precission);
+			sprintf(el->value, "%f", rez);
+			free_el(arg1);
+			free_el(arg2);
+		} 
+	}else if(strcmp(el->value, "(") == 0){
+		if(el->inner){
+			exec_el(el->inner);
+			free(el->value);
+			el->value = strdup(el->inner->value);
+			free_el(el->inner); 
+		}
+	}
+	el->inner = NULL;
+}
+
 void make_tree_ma(Element *root){
 	Element *iter = root->inner;
+	int pr = 3;
 
-	while(iter){
-		if(iter->inner)
-			make_tree_ma(iter);
-		if(iter->dic->type == ACTION){
-			if(!iter->prev){
-				printf("Error: miss operand before %s\n", iter->value);
-				return;
+	while(pr--){
+		while(iter){
+			if(iter->inner)
+				make_tree_ma(iter);
+			if(iter->dic->type == ACTION && iter->dic->prior == pr){
+				if(!iter->prev){
+					printf("Error: miss operand before %s\n", iter->value);
+					return;
+				}
+				if(!iter->next){
+					printf("Error: miss operand avter %s\n", iter->value);
+					return;
+				}
+				add_el(iter, iter->prev);
+				if(iter->next && iter->next->inner)
+					make_tree_ma(iter->next);
+				add_el(iter, iter->next);
 			}
-			if(!iter->next){
-				printf("Error: miss operand avter %s\n", iter->value);
-				return;
-			}
-			add_el(iter, iter->prev);
-			if(iter->next && iter->next->inner)
-				make_tree_ma(iter->next);
-			add_el(iter, iter->next);
+			iter = iter->next;
 		}
-		iter = iter->next;
+		iter = root->inner;
 	}
 }
 

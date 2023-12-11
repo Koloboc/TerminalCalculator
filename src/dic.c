@@ -6,7 +6,7 @@
 
 Dic *dic = NULL;
 size_t count_dic = 0;
-
+int max_prior = 2;
 // Находит элемент в словаре
 // Если не найден, то создает новый (типа foo или operand
 Dic* word_dic(char *name, Types type){
@@ -17,7 +17,7 @@ Dic* word_dic(char *name, Types type){
 		d = d->next;
 	}
 	if(type == IS_FOO || type == OPERAND)
-		return add_word_dic(name, 0, type);
+		return add_word_dic(name, 0, type, 0);
 	return NULL;
 }
 
@@ -48,7 +48,7 @@ size_t word_cod(char *name){
 }
 
 // Создает и присоединяет в начало списка элемент
-Dic *add_word_dic(char *name, size_t cod, Types t){
+Dic *add_word_dic(char *name, size_t cod, Types t, int prior){
 	Dic *newdic = (Dic*)malloc(sizeof(Dic));
 	if(cod)
 		newdic->code = cod;
@@ -57,6 +57,7 @@ Dic *add_word_dic(char *name, size_t cod, Types t){
 
 	newdic->name = strdup(name);
 	newdic->type = t;
+	newdic->prior = prior;
 	newdic->next = NULL;
 	newdic->next = dic;
 	dic = newdic;
@@ -65,12 +66,12 @@ Dic *add_word_dic(char *name, size_t cod, Types t){
 
 // Создает базовые элементы
 void init_dic(){
-	add_word_dic("*", 0, ACTION);
-	add_word_dic("/", 0, ACTION);
-	add_word_dic("+", 0, ACTION);
-	add_word_dic("-", 0, ACTION);
-	add_word_dic("(", 0, OPEN_LEVEL);
-	add_word_dic(")", 0, CLOSE_LEVEL);
+	add_word_dic("*", 0, ACTION, 1);
+	add_word_dic("/", 0, ACTION, 1);
+	add_word_dic("+", 0, ACTION, 0);
+	add_word_dic("-", 0, ACTION, 0);
+	add_word_dic("(", 0, OPEN_LEVEL, 2);
+	add_word_dic(")", 0, CLOSE_LEVEL, 2);
 }
 
 void free_dic(){

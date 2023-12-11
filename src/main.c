@@ -25,13 +25,14 @@ int main(int argc, char** argv){
 	Element *prog = (Element*)malloc(sizeof(Element));
 	memset(prog, 0, sizeof(Element));
 	read_words(prog, prog_txt);
-	int cod_open = word_cod("(");
-	int cod_close = word_cod(")");
-	make_tree(prog, cod_open, cod_close);
+	make_tree(prog, word_cod("("), word_cod(")"));
 	make_tree_ma(prog);
-
+#ifdef DEBUG
 	print_prog(prog, 0);
-	printf("%s\n", prog_txt);
+#endif
+	exec_el(prog->inner);
+	printf("%s =\n%s\n", prog_txt, prog->inner->value);
+
 
 	free_dic();
 	free_prog(prog);
