@@ -12,17 +12,26 @@ extern Dic *dic;
 int main(int argc, char** argv){
 	char *prog_txt = NULL;
 
-	if(argc < 2){
-		printf("Usage: %s expresion\n", argv[0]);
-		return 0;
+	if(argc > 2){
+		if(strcmp(argv[1], "-e") == 0){
+			prog_txt = argv[2];
+		}else{
+			printf("%s expresion\n", argv[0]);
+			return  EXIT_SUCCESS;
+		}
+	}else if(argc < 2){
+		printf("Usage: %s <file>\n", argv[0]);
+		printf("       %s -e \"expression\"\n", argv[0]);
+		return  EXIT_SUCCESS;
 	}
 
-	if((prog_txt = file_to_str(argv[1])) == NULL)
-		return EXIT_FAILURE;
+	if(!prog_txt)
+		if((prog_txt = file_to_str(argv[1])) == NULL)
+			return EXIT_FAILURE;
 
 	init_dic();
 #ifdef DEBUG
-	//print_dic();
+	print_dic();
 #endif
 
 	Element *prog = (Element*)malloc(sizeof(Element));
@@ -40,7 +49,8 @@ int main(int argc, char** argv){
 	free_dic();
 	free_prog(prog);
 
-	free(prog_txt);
+	if(argc < 2)
+		free(prog_txt);
 	return EXIT_SUCCESS;
 }
 
