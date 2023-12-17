@@ -2,111 +2,116 @@
 #include "element.h"
 #include "dic.h"
 
-
-void exec_el(Element *el){
-	Element *arg1 = NULL;
-	Element *arg2 = NULL;
-	int precission = 10;
-
-	if(el->dic->type == OPERAND) return;
-
-	if(el->inner){
-		arg1 = el->inner;
-		exec_el(arg1);
-		if(el->inner->next){
-			arg2 = el->inner->next;
-			exec_el(arg2);
-		}
-	}
-
-	if(strcmp(el->value, "+") == 0){
-		if(arg2 && arg1){
-			double d1 = strtod(arg1->value, NULL);
-			double d2 = strtod(arg2->value,NULL);
-			double rez = d1 + d2;
-#ifdef DEBUG
-			printf("operation '+': d1=%f; d2=%f; rez=%f\n", d1, d2, rez);
-#endif
-			if(el->value) free(el->value);
-			el->value = (char*)malloc(sizeof(char) * precission);
-			sprintf(el->value, "%f", rez);
-			free_el(arg1);
-			free_el(arg2);
-		} 
-	}else if(strcmp(el->value, "-") == 0){
-		if(arg2 && arg1){
-			double d1 = strtod(arg1->value, NULL);
-			double d2 = strtod(arg2->value,NULL);
-			double rez = d1 - d2;
-#ifdef DEBUG
-			printf("operation '-': d1=%f; d2=%f; rez=%f\n", d1, d2, rez);
-#endif
-			if(el->value) free(el->value);
-			el->value = (char*)malloc(sizeof(char) * precission);
-			sprintf(el->value, "%f", rez);
-			free_el(arg1);
-			free_el(arg2);
-		} 
-	}else if(strcmp(el->value, "/") == 0){
-		if(arg2 && arg1){
-			double d1 = strtod(arg1->value, NULL);
-			double d2 = strtod(arg2->value,NULL);
-			if(!d2){
-				printf("division on 0");
-				return;
+// Операции с двумя аргументами (+-/*)
+void op_dual(Element *el, char *op){
+		if(el->inner && el->inner->next){
+			double d1 = strtod(el->inner->value, NULL);
+			double d2 = strtod(el->inner->next->value,NULL);
+			double rez;
+			switch (op[0]){
+				case '+': rez = d1 + d2; break;
+				case '-': rez = d1 - d2; break;
+				case '*': rez = d1 * d2; break;
+				case '/': rez = d1 / d2; break;
+				default:
+				  printf("uncnow operation '%c'", op[0]);
+				  return;
 			}
-			double rez = d1 / d2;
 #ifdef DEBUG
-			printf("operation '/': d1=%f; d2=%f; rez=%f\n", d1, d2, rez);
+			printf("%f '%c' %f = %f\n", d1, op[0], d2, rez);
 #endif
 			if(el->value) free(el->value);
-			el->value = (char*)malloc(sizeof(char) * precission);
+			el->value = (char*)malloc(sizeof(char) * PRECISSION);
 			sprintf(el->value, "%f", rez);
-			free_el(arg1);
-			free_el(arg2);
-		} 
-	}else if(strcmp(el->value, "*") == 0){
-		if(arg2 && arg1){
-			double d1 = strtod(arg1->value, NULL);
-			double d2 = strtod(arg2->value,NULL);
-			double rez = d1 * d2;
-#ifdef DEBUG
-			printf("operation '*': d1=%f; d2=%f; rez=%f\n", d1, d2, rez);
-#endif
-			if(el->value) free(el->value);
-			el->value = (char*)malloc(sizeof(char) * precission);
-			sprintf(el->value, "%f", rez);
-			free_el(arg1);
-			free_el(arg2);
-		} 
-	}else if(strcmp(el->value, "(") == 0){
-		if(el->inner){
-			exec_el(el->inner);
+			free_el(el->inner->next); // Disconnect and free elem
+			free_el(el->inner); // Disconnect and free elem
+		}else{
+			printf("missing arguments: '%c'\n", op[0]);
+		}
+		return; 
+}
+
+void exec_brackets(Element *el){
+	Element *in = el->inner;
+	if(el->inner){
+		if(el->parent->dic->type != IS_FOO){ // Если родитель это - функция
 			free(el->value);
 			el->value = strdup(el->inner->value);
 			free_el(el->inner); 
+		}else{
+			in = el->inner;
+			Element *parent = el->parent;
+			parent->inner = in;
+			while(in){
+				in->parent = parent;
+				in = in->next;
+			} 
+			free_el(el);
 		}
 	}
-	el->inner = NULL;
+}
+
+void exec_el(Element *el){
+	Element *in = el->inner;
+
+	if(el->dic->type == OPERAND) 
+		return;
+
+	while(in){
+		exec_el(in);
+		in = in->next;
+	}
+
+	if(el->dic->type == ACTION){
+		op_dual(el, el->value); // operation (+ - / *)
+	}else if(strcmp(el->value, "(") == 0){
+		exec_brackets(el);
+	}else if(el->dic->type == IS_FOO){
+		Dic *d = word_dic(el->value, IS_FOO);
+		double rez;
+		if(d){ 
+			if(d->pfoo){
+				if(d->pfoo->nargs == 2){ // Количество аргументов функции 2
+					foonc_1_2* foo =  d->pfoo->pfoo;
+					if(el->inner && el->inner->next){
+					double d1 = strtod(el->inner->value, NULL);
+					double d2 = strtod(el->inner->next->value, NULL);
+					rez = (*foo)(d1, d2);
+					free_el(el->inner->next);
+					free_el(el->inner);
+#ifdef DEBUG
+			printf("operation '%s': d1=%f; d2=%f; rez=%f\n",el->value, d1, d2, rez);
+#endif
+					}
+				}else{ // Количество аргументов функции 1
+					foonc_1_1* foo =  d->pfoo->pfoo;
+					double d1 = strtod(el->inner->value, NULL);
+					rez = (*foo)(d1);
+					free_el(el->inner);
+#ifdef DEBUG
+			printf("operation '%s': d1=%f; rez=%f\n",el->value, d1, rez);
+#endif
+				}
+			}
+			if(el->value) free(el->value);
+			el->value = (char*)malloc(sizeof(char) * PRECISSION);
+			sprintf(el->value, "%f", rez);
+		}
+	}
 }
 
 void make_tree_ma(Element *root){
 	Element *iter = root->inner;
-	int pr = 3;
+	int pr = MAX_PRIOR; // Приоритет выполнения начинаем с максимального ( функции, скобки,операции +-/*)
 
 	while(pr--){
 		while(iter){
 			if(iter->inner)
 				make_tree_ma(iter);
 			if(iter->dic->type == ACTION && iter->dic->prior == pr){
-				if(!iter->prev){
-					printf("Error: miss operand before %s\n", iter->value);
-					return;
-				}
-				if(!iter->next){
-					printf("Error: miss operand avter %s\n", iter->value);
-					return;
-				}
+				if(!iter->prev) return;
+				if(!iter->next) return;
+
 				add_el(iter, iter->prev);
 				if(iter->next && iter->next->inner)
 					make_tree_ma(iter->next);
@@ -141,7 +146,7 @@ void make_tree(Element *el, size_t code_open, size_t code_close){
 	}
 }
 
-// Возыращает последний элемент во внутреннем списке root
+// Возвращает последний элемент во внутреннем списке root
 // или NULL
 Element *last_el(Element *root){
 	Element *inn = root->inner;

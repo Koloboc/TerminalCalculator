@@ -125,7 +125,7 @@ char *file_to_str(char *namefile){
 	off_t size = st.st_size;
 
 	FILE *in = NULL;
-    in = fopen("test", "r");
+    in = fopen(namefile, "r");
 	if(!in)
 		return NULL;
 

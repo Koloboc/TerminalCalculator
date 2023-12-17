@@ -7,8 +7,8 @@
 #include "utils.h"
 #include "dic.h"
 
+//#define DEBUG 0
 extern Dic *dic;
-
 int main(int argc, char** argv){
 	char *prog_txt = NULL;
 
@@ -21,6 +21,9 @@ int main(int argc, char** argv){
 		return EXIT_FAILURE;
 
 	init_dic();
+#ifdef DEBUG
+	//print_dic();
+#endif
 
 	Element *prog = (Element*)malloc(sizeof(Element));
 	memset(prog, 0, sizeof(Element));
@@ -31,8 +34,8 @@ int main(int argc, char** argv){
 	print_prog(prog, 0);
 #endif
 	exec_el(prog->inner);
-	printf("%s =\n%s\n", prog_txt, prog->inner->value);
 
+	printf("%s =\n%s\n", prog_txt, prog->inner->value);
 
 	free_dic();
 	free_prog(prog);
