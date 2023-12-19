@@ -2,6 +2,8 @@
 #include "element.h"
 #include "dic.h"
 
+#undef DEBUG
+
 // Операции с двумя аргументами (+-/*)
 void op_dual(Element *el, char *op){
 		if(el->inner && el->inner->next){
@@ -28,7 +30,7 @@ void op_dual(Element *el, char *op){
 		}else{
 			printf("missing arguments: '%c'\n", op[0]);
 		}
-		return; 
+		return;
 }
 
 void exec_brackets(Element *el){
@@ -37,7 +39,7 @@ void exec_brackets(Element *el){
 		if(el->parent->dic->type != IS_FOO){ // Если родитель это - функция
 			free(el->value);
 			el->value = strdup(el->inner->value);
-			free_el(el->inner); 
+			free_el(el->inner);
 		}else{
 			in = el->inner;
 			Element *parent = el->parent;
@@ -45,7 +47,7 @@ void exec_brackets(Element *el){
 			while(in){
 				in->parent = parent;
 				in = in->next;
-			} 
+			}
 			free_el(el);
 		}
 	}
@@ -54,7 +56,7 @@ void exec_brackets(Element *el){
 void exec_el(Element *el){
 	Element *in = el->inner;
 
-	if(el->dic->type == OPERAND) 
+	if(el->dic->type == OPERAND)
 		return;
 
 	while(in){
@@ -63,14 +65,17 @@ void exec_el(Element *el){
 	}
 
 	if(el->dic->type == ACTION){
-		op_dual(el, el->value); // operation (+ - / *)
+		 // Вычесление operations (+ - / *)
+		op_dual(el, el->value);
 	}else if(strcmp(el->value, "(") == 0){
+		// Вычесление скобок
 		exec_brackets(el);
 	}else if(el->dic->type == IS_FOO){
-		Dic *d = word_dic(el->value, IS_FOO);
+		// Вычесление Функций
+		Dic *d = word_dic(el->value, IS_FOO); // Получаем соответсвующий елемент-dictonary (или создается новый элемент)
 		double rez;
-		if(d){ 
-			if(d->pfoo){
+		if(d){
+			if(d->pfoo){ // Если задан указатель на функцию
 				if(d->pfoo->nargs == 2){ // Количество аргументов функции 2
 					foonc_1_2* foo =  d->pfoo->pfoo;
 					if(el->inner && el->inner->next){
@@ -80,7 +85,7 @@ void exec_el(Element *el){
 					free_el(el->inner->next);
 					free_el(el->inner);
 #ifdef DEBUG
-			printf("operation '%s': d1=%f; d2=%f; rez=%f\n",el->value, d1, d2, rez);
+					printf("operation '%s': d1=%f; d2=%f; rez=%f\n",el->value, d1, d2, rez);
 #endif
 					}
 				}else{ // Количество аргументов функции 1
@@ -89,9 +94,12 @@ void exec_el(Element *el){
 					rez = (*foo)(d1);
 					free_el(el->inner);
 #ifdef DEBUG
-			printf("operation '%s': d1=%f; rez=%f\n",el->value, d1, rez);
+					printf("operation '%s': d1=%f; rez=%f\n",el->value, d1, rez);
 #endif
 				}
+			}else{ // Нет указателя на функцию
+				printf("Error: fuction %s not exist or not faund\n", el->value);
+
 			}
 			if(el->value) free(el->value);
 			el->value = (char*)malloc(sizeof(char) * PRECISSION);

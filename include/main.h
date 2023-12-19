@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "stack.h"
 
+void usage(char *name_exe);
 char *file_to_str(const char *namefile);
 
 #endif

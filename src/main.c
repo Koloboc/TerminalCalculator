@@ -7,21 +7,26 @@
 #include "utils.h"
 #include "dic.h"
 
-//#define DEBUG 0
+//#undef DEBUG
 extern Dic *dic;
+
+void usage(char *name_exe){
+	printf("Usage: %s <file>\n", name_exe);
+	printf("       %s -e \"expression\"\n", name_exe);
+}
+
 int main(int argc, char** argv){
 	char *prog_txt = NULL;
 
 	if(argc > 2){
-		if(strcmp(argv[1], "-e") == 0){
+		if((strcmp(argv[1], "-e") == 0) && argv[2]){
 			prog_txt = argv[2];
 		}else{
-			printf("%s expresion\n", argv[0]);
+			usage(argv[0]);
 			return  EXIT_SUCCESS;
 		}
 	}else if(argc < 2){
-		printf("Usage: %s <file>\n", argv[0]);
-		printf("       %s -e \"expression\"\n", argv[0]);
+		usage(argv[0]);
 		return  EXIT_SUCCESS;
 	}
 

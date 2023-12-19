@@ -4,11 +4,12 @@
 #include <ctype.h>
 #include "dic.h"
 
+//#undef DEBUG
 Dic *dic = NULL;
 size_t count_dic = 0;
 int max_prior = 2;
 // Находит элемент в словаре
-// Если не найден, то создает новый (типа foo или operand
+// Если не найден, то создает новый (типа foo или operand)
 Dic* word_dic(char *name, Types type){
 	Dic *d = dic;
 	while(d){
@@ -66,7 +67,7 @@ Dic *add_word_dic(char *name, size_t cod, Types t, int prior, void *f){
 	dic = newdic;
 	if(f){
 		tpfoo = (TPFoo*)malloc(sizeof(TPFoo));
-		if((strcmp(name, "fmax") == 0) || 
+		if((strcmp(name, "fmax") == 0) ||
 		   (strcmp(name, "fmin") == 0)	||
 		   (strcmp(name, "fmod") == 0)	||
 		   (strcmp(name, "pow") == 0)){
