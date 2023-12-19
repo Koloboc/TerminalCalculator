@@ -25,7 +25,8 @@ target_compile_options(${PROJECT_TARGET} PRIVATE -g -Wall -DDEBUG)
 
 #========================================
 
-target_link_options(${PROJECT_TARGET} PRIVATE -lm)
+#target_link_options(${PROJECT_TARGET} PRIVATE -lm)
+target_link_libraries(${PROJECT_TARGET} -lm)
 #target_compile_options(${PROJECT_TARGET} PRIVATE -Wall)
 
 
