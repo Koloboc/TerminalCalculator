@@ -6,6 +6,20 @@
 #include "utils.h"
 #include "dic.h"
 
+char *prv(char *sval){
+	int len = strlen(sval);
+
+	if(strchr(sval, '.')){
+		while(sval[len - 1] == '0'){
+			sval[len - 1] = '\0';
+			len--;
+		}
+		if(sval[len - 1] == '.')
+			sval[len - 1] = '\0';
+	}
+	return sval;
+}
+
 // Симовл является буквой алфавита?
 // 1 - да
 // 0 - нет

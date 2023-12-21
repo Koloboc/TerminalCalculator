@@ -14,6 +14,7 @@ char *read_1mark(char *str, size_t *pos, size_t);
 char *read_2mark(char *str, size_t *pos, size_t);
 int is_liter(char ch);
 int is_digit(char ch);
+char *prv(char *sval);
 
 
 #endif
