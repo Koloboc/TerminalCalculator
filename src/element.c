@@ -1,15 +1,17 @@
 #include <stdlib.h>
 #include "element.h"
 #include "dic.h"
+#include "utils.h"
 #include <math.h>
 
 // Операции с двумя аргументами (+-/*)
 void op_dual(Element *el, char *op){
+		double arg1, arg2, rez;
 		char operation = op[0];
+
 		if(el->inner && el->inner->next){
-			double arg1 = strtod(el->inner->value, NULL);
-			double arg2 = strtod(el->inner->next->value,NULL);
-			double rez;
+			arg1 = strtod(el->inner->value, NULL);
+			arg2 = strtod(el->inner->next->value,NULL);
 			switch (operation){
 				case '+': rez = arg1 + arg2; break;
 				case '-': rez = arg1 - arg2; break;
@@ -19,14 +21,19 @@ void op_dual(Element *el, char *op){
 				  printf("uncnow operation '%c'", operation);
 				  return;
 			}
-			if(el->value) free(el->value);
+			if(el->value) 
+				free(el->value);
+
 			el->value = (char*)malloc(sizeof(char) * PRECISSION);
 			sprintf(el->value, "%f", rez);
+
 #ifdef DEBUG
-			printf("%s %c %s = %s\n", prv(el->inner->value), operation, prv(el->inner->next->value), prv(el->value));
+			printf("%s %c %s = %s\n", pr_v(el->inner->value), operation, pr_v(el->inner->next->value), pr_v(el->value));
 #endif
+
 			free_el(el->inner->next); // Disconnect and free elem
 			free_el(el->inner); // Disconnect and free elem
+
 		}else{
 			printf("missing arguments: '%c'\n", operation);
 		}
@@ -37,11 +44,11 @@ void exec_brackets(Element *el){
 	Element *in = el->inner;
 	if(el->inner){
 		if(el->parent->dic->type != IS_FOO){ // Если родитель это - функция
-			free(el->value);
+			free(el->value);				//  Копирукм результат вычислний "в скобках"
 			el->value = strdup(el->inner->value);
 			free_el(el->inner); 
-		}else{
-			in = el->inner;
+		}else{		// Это просто скобка (НЕ функция)
+			in = el->inner; // Просто удоляем элемент, соединяя иннер с родителем
 			Element *parent = el->parent;
 			parent->inner = in;
 			while(in){
@@ -56,10 +63,11 @@ void exec_brackets(Element *el){
 void exec_el(Element *el){
 	Element *in = el->inner;
 
+	// Это просто число и его не нужно вычислять
 	if(el->dic->type == OPERAND) 
 		return;
 
-	while(in){
+	while(in){ // Вычислим внутренние элементы (рекурсивно)
 		exec_el(in);
 		in = in->next;
 	}
@@ -67,14 +75,14 @@ void exec_el(Element *el){
 	if(el->dic->type == ACTION){
 		op_dual(el, el->value); // operation (+ - / *)
 	}else if(strcmp(el->value, "(") == 0){
-		exec_brackets(el);
-	}else if(el->dic->type == IS_FOO){
+		exec_brackets(el);		// Скобки
+	}else if(el->dic->type == IS_FOO){// Функция
 		Dic *d = word_dic(el->value, IS_FOO);
 		double rez;
 		double arg1;
 		double arg2;
 		if(d){ 
-			if(d->pfoo){
+			if(d->pfoo){ // Если назначен адрес функции
 				if(el->inner){
 					arg1 = strtod(el->inner->value, NULL);
 					if(d->pfoo->nargs == 2){ // Количество аргументов функции 2
@@ -82,12 +90,14 @@ void exec_el(Element *el){
 						if(el->inner->next){
 							arg2 = strtod(el->inner->next->value, NULL);
 							if(d->need_grad){
-								arg1 = (arg1 * M_PI) / 180;
+								arg1 = (arg1 * M_PI) / 180; // пересчитываем в радианы
 								arg2 = (arg2 * M_PI) / 180;
 							}
 							rez = (*foo)(arg1, arg2);
 #ifdef DEBUG
-							printf("%s(%s, %s) = ", prv(el->value), prv(el->inner->value), prv(el->inner->next->value));
+							// Первая часть сообщения
+							// foo( x,  y) =
+							printf("%s(%s, %s) = ", pr_v(el->value), pr_v(el->inner->value), pr_v(el->inner->next->value));
 #endif
 							free_el(el->inner->next);
 							free_el(el->inner);
@@ -95,11 +105,13 @@ void exec_el(Element *el){
 					}else{ // Количество аргументов функции 1
 							foonc_1_1* foo =  d->pfoo->pfoo;
 							if(d->need_grad){
-								arg1 = (arg1 * M_PI) / 180;
+								arg1 = (arg1 * M_PI) / 180; // пересчитываем в радианы
 							}
 							rez = (*foo)(arg1);
 #ifdef DEBUG
-							printf("%s(%s) = ", prv(el->value), prv(el->inner->value));
+							// Первая часть сообщения
+							// foo( x ) =
+							printf("%s(%s) = ", pr_v(el->value), pr_v(el->inner->value));
 #endif
 							free_el(el->inner);
 					}
@@ -109,7 +121,9 @@ void exec_el(Element *el){
 			el->value = (char*)malloc(sizeof(char) * PRECISSION);
 			sprintf(el->value, "%f", rez);
 #ifdef DEBUG
-			printf("%s\n", prv(el->value));
+			// Вторая часть сообщения
+			//  rez
+			printf("%s\n", pr_v(el->value));
 #endif
 		}
 	}

@@ -6,7 +6,9 @@
 #include "utils.h"
 #include "dic.h"
 
-char *prv(char *sval){
+// Уирает дишниий не значащие нули (после хапятой) в строке
+// str = 1234.1200 вернет str = 1234.12
+char *pr_v(char *sval){
 	int len = strlen(sval);
 
 	if(strchr(sval, '.')){
