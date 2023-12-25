@@ -63,6 +63,7 @@ Dic *add_word_dic(char *name, size_t cod, Types t, int prior, void *f){
 	newdic->prior = prior;
 	newdic->next = NULL;
 	newdic->pfoo = NULL;
+	newdic->need_grad = 0;
 	newdic->next = dic;
 	dic = newdic;
 	if(f){
@@ -83,6 +84,7 @@ Dic *add_word_dic(char *name, size_t cod, Types t, int prior, void *f){
 
 // Создает базовые элементы
 void init_dic(){
+	Dic *d = NULL;
 	add_word_dic("*", 0, ACTION, 1, NULL);
 	add_word_dic("/", 0, ACTION, 1, NULL);
 	add_word_dic("+", 0, ACTION, 0, NULL);
@@ -90,11 +92,15 @@ void init_dic(){
 	add_word_dic("(", 0, OPEN_LEVEL, 2, NULL);
 	add_word_dic(")", 0, CLOSE_LEVEL, 2, NULL);
 
-	add_word_dic("acos", 0, IS_FOO, 2, &acos);
-	add_word_dic("asin", 0, IS_FOO, 2, &asin);
-	add_word_dic("atan", 0, IS_FOO, 2, &atan);
+	d = add_word_dic("acos", 0, IS_FOO, 2, &acos);
+	d->need_grad = 1;
+	d = add_word_dic("asin", 0, IS_FOO, 2, &asin);
+	d->need_grad = 1;
+	d = add_word_dic("atan", 0, IS_FOO, 2, &atan);
+	d->need_grad = 1;
 	add_word_dic("ceil", 0, IS_FOO, 2, &ceil);
-	add_word_dic("cos", 0, IS_FOO, 2, &cos);
+	d = add_word_dic("cos", 0, IS_FOO, 2, &cos);
+	d->need_grad = 1;
 	add_word_dic("exp", 0, IS_FOO, 2, &exp);
 	add_word_dic("floor", 0, IS_FOO, 2, &floor);
 	add_word_dic("fmax", 0, IS_FOO, 2, &fmax);
@@ -105,9 +111,11 @@ void init_dic(){
 	add_word_dic("log2", 0, IS_FOO, 2, &log2);
 	add_word_dic("pow", 0, IS_FOO, 2, &pow);
 	add_word_dic("round", 0, IS_FOO, 2, &round);
-	add_word_dic("sin", 0, IS_FOO, 2, &sin);
+	d = add_word_dic("sin", 0, IS_FOO, 2, &sin);
+	d->need_grad = 1;
 	add_word_dic("sqrt", 0, IS_FOO, 2, &sqrt);
-	add_word_dic("tan", 0, IS_FOO, 2, &tan);
+	d = add_word_dic("tan", 0, IS_FOO, 2, &tan);
+	d->need_grad = 1;
 }
 
 void free_dic(){

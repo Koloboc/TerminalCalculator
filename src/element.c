@@ -1,34 +1,43 @@
 #include <stdlib.h>
 #include "element.h"
 #include "dic.h"
+#include "utils.h"
+#include <math.h>
 
 #undef DEBUG
 
 // Операции с двумя аргументами (+-/*)
 void op_dual(Element *el, char *op){
+		double arg1, arg2, rez;
+		char operation = op[0];
+
 		if(el->inner && el->inner->next){
-			double d1 = strtod(el->inner->value, NULL);
-			double d2 = strtod(el->inner->next->value,NULL);
-			double rez;
-			switch (op[0]){
-				case '+': rez = d1 + d2; break;
-				case '-': rez = d1 - d2; break;
-				case '*': rez = d1 * d2; break;
-				case '/': rez = d1 / d2; break;
+			arg1 = strtod(el->inner->value, NULL);
+			arg2 = strtod(el->inner->next->value,NULL);
+			switch (operation){
+				case '+': rez = arg1 + arg2; break;
+				case '-': rez = arg1 - arg2; break;
+				case '*': rez = arg1 * arg2; break;
+				case '/': rez = arg1 / arg2; break;
 				default:
-				  printf("uncnow operation '%c'", op[0]);
+				  printf("uncnow operation '%c'", operation);
 				  return;
 			}
-#ifdef DEBUG
-			printf("%f '%c' %f = %f\n", d1, op[0], d2, rez);
-#endif
-			if(el->value) free(el->value);
+			if(el->value)
+				free(el->value);
+
 			el->value = (char*)malloc(sizeof(char) * PRECISSION);
 			sprintf(el->value, "%f", rez);
+
+#ifdef DEBUG
+			printf("%s %c %s = %s\n", pr_v(el->inner->value), operation, pr_v(el->inner->next->value), pr_v(el->value));
+#endif
+
 			free_el(el->inner->next); // Disconnect and free elem
 			free_el(el->inner); // Disconnect and free elem
+
 		}else{
-			printf("missing arguments: '%c'\n", op[0]);
+			printf("missing arguments: '%c'\n", operation);
 		}
 		return;
 }
@@ -37,11 +46,11 @@ void exec_brackets(Element *el){
 	Element *in = el->inner;
 	if(el->inner){
 		if(el->parent->dic->type != IS_FOO){ // Если родитель это - функция
-			free(el->value);
+			free(el->value);				//  Копирукм результат вычислний "в скобках"
 			el->value = strdup(el->inner->value);
 			free_el(el->inner);
-		}else{
-			in = el->inner;
+		}else{		// Это просто скобка (НЕ функция)
+			in = el->inner; // Просто удоляем элемент, соединяя иннер с родителем
 			Element *parent = el->parent;
 			parent->inner = in;
 			while(in){
@@ -56,10 +65,11 @@ void exec_brackets(Element *el){
 void exec_el(Element *el){
 	Element *in = el->inner;
 
+	// Это просто число и его не нужно вычислять
 	if(el->dic->type == OPERAND)
 		return;
 
-	while(in){
+	while(in){ // Вычислим внутренние элементы (рекурсивно)
 		exec_el(in);
 		in = in->next;
 	}
@@ -68,34 +78,46 @@ void exec_el(Element *el){
 		 // Вычесление operations (+ - / *)
 		op_dual(el, el->value);
 	}else if(strcmp(el->value, "(") == 0){
-		// Вычесление скобок
-		exec_brackets(el);
-	}else if(el->dic->type == IS_FOO){
-		// Вычесление Функций
-		Dic *d = word_dic(el->value, IS_FOO); // Получаем соответсвующий елемент-dictonary (или создается новый элемент)
+		exec_brackets(el);		// Скобки
+	}else if(el->dic->type == IS_FOO){// Функция
+		Dic *d = word_dic(el->value, IS_FOO);
 		double rez;
+		double arg1;
+		double arg2;
 		if(d){
-			if(d->pfoo){ // Если задан указатель на функцию
-				if(d->pfoo->nargs == 2){ // Количество аргументов функции 2
-					foonc_1_2* foo =  d->pfoo->pfoo;
-					if(el->inner && el->inner->next){
-					double d1 = strtod(el->inner->value, NULL);
-					double d2 = strtod(el->inner->next->value, NULL);
-					rez = (*foo)(d1, d2);
-					free_el(el->inner->next);
-					free_el(el->inner);
+			if(d->pfoo){ // Если назначен адрес функции
+				if(el->inner){
+					arg1 = strtod(el->inner->value, NULL);
+					if(d->pfoo->nargs == 2){ // Количество аргументов функции 2
+						foonc_1_2* foo =  d->pfoo->pfoo;
+						if(el->inner->next){
+							arg2 = strtod(el->inner->next->value, NULL);
+							if(d->need_grad){
+								arg1 = (arg1 * M_PI) / 180; // пересчитываем в радианы
+								arg2 = (arg2 * M_PI) / 180;
+							}
+							rez = (*foo)(arg1, arg2);
 #ifdef DEBUG
-					printf("operation '%s': d1=%f; d2=%f; rez=%f\n",el->value, d1, d2, rez);
+							// Первая часть сообщения
+							// foo( x,  y) =
+							printf("%s(%s, %s) = ", pr_v(el->value), pr_v(el->inner->value), pr_v(el->inner->next->value));
 #endif
+							free_el(el->inner->next);
+							free_el(el->inner);
+						}
+					}else{ // Количество аргументов функции 1
+							foonc_1_1* foo =  d->pfoo->pfoo;
+							if(d->need_grad){
+								arg1 = (arg1 * M_PI) / 180; // пересчитываем в радианы
+							}
+							rez = (*foo)(arg1);
+#ifdef DEBUG
+							// Первая часть сообщения
+							// foo( x ) =
+							printf("%s(%s) = ", pr_v(el->value), pr_v(el->inner->value));
+#endif
+							free_el(el->inner);
 					}
-				}else{ // Количество аргументов функции 1
-					foonc_1_1* foo =  d->pfoo->pfoo;
-					double d1 = strtod(el->inner->value, NULL);
-					rez = (*foo)(d1);
-					free_el(el->inner);
-#ifdef DEBUG
-					printf("operation '%s': d1=%f; rez=%f\n",el->value, d1, rez);
-#endif
 				}
 			}else{ // Нет указателя на функцию
 				printf("Error: fuction %s not exist or not faund\n", el->value);
@@ -104,6 +126,11 @@ void exec_el(Element *el){
 			if(el->value) free(el->value);
 			el->value = (char*)malloc(sizeof(char) * PRECISSION);
 			sprintf(el->value, "%f", rez);
+#ifdef DEBUG
+			// Вторая часть сообщения
+			//  rez
+			printf("%s\n", pr_v(el->value));
+#endif
 		}
 	}
 }

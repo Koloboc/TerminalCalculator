@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 double      acos(double);
 double      asin(double);
@@ -49,6 +50,7 @@ typedef struct _dic{
 	Types type;
 	int prior; // Приоритет от 0 до 3?
 	TPFoo *pfoo;
+	int need_grad;
 	struct _dic *next;
 }Dic;
 

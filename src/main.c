@@ -35,10 +35,11 @@ int main(int argc, char** argv){
 			return EXIT_FAILURE;
 
 	init_dic();
+	/*
 #ifdef DEBUG
 	print_dic();
 #endif
-
+*/
 	Element *prog = (Element*)malloc(sizeof(Element));
 	memset(prog, 0, sizeof(Element));
 	read_words(prog, prog_txt);
