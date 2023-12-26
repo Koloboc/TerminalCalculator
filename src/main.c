@@ -50,7 +50,7 @@ int main(int argc, char** argv){
 #endif
 	exec_el(prog->inner);
 
-	printf("%s =\n%s\n", prog_txt, prog->inner->value);
+	printf("%s =\n%s\n", prog_txt, pr_v(prog->inner->value));
 
 	free_dic();
 	free_prog(prog);
